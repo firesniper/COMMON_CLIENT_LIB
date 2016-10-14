@@ -1,4 +1,5 @@
 function tools_view(){
+
 var $all = document.querySelectorAll("html *");
 var $lastStyle = document.createElement("style");
 $lastStyle.setAttribute("rel","stylesheet");
@@ -10,7 +11,34 @@ $lastStyle.textContent=
 var $html = document.documentElement;
 $html.appendChild($lastStyle);
 
-console.log("$all:",$all.forEach);
+console.log("$all:", $all.length);
+console.log("$all:",$all.forEach == undefined);
+console.log("$all:",Object.getOwnPropertyDescriptor($all));
+// $all = Array.prototype.slice.call($all,0);
+$all2 = [];
+for(var ac in $all){
+	if($all.hasOwnProperty(ac))
+	$all2.push($all[ac]);
+}
+$all=$all2;
+console.log("$all:",$all);
+	var cv01 = "cv01";
+	cv01 = ($all.forEach == undefined)?
+	cv01:
+	0
+	;
+	console.log("cv01:",cv01);
+
+// 	Array.prototype.forEach = 
+// 	($all.forEach != undefined)?
+// 	Array.prototype.forEach:
+// 	function(){
+// 		console.log("Array.prototype.forEach");
+// 	}
+// 	;
+// 	Array.prototype.forEach();
+// 	console.log("Array.prototype.forEach:",Array.prototype.forEach);
+
 function ac01 (){
 	var $lastStyle = null;
 	for(var i=0; i<$all.length;i++){
@@ -100,7 +128,7 @@ function bf(){
 	$all.forEach(
 		function(e)
 		{
-	// 		console.log("e", e);
+			console.log("e", e);
 	// 		for (var a in e) {
 	// 			console.log("a", e['a']);
 	// 		}
@@ -150,5 +178,7 @@ function bf(){
 		}
 	);
 }
+
+
 bf();
 }
