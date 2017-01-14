@@ -1,22 +1,21 @@
 ;( function ( $html , $head , $body ) {
-"use strict";
+"use strict" ;
 if( document.getElementsByTagName( "body" )[ 0 ] )
 {
-	var $body = document.getElementsByTagName( "body" );
-	var $script = $body[0].getElementsByTagName( "script" );
+	var $body = document.getElementsByTagName( "body" ) ;
+	var $script = $body[ 0 ].getElementsByTagName( "script" ) ;
 }
 // else {
 // 	var $script = $html[0].getElementsByTagName( "script" );
 // };
-// void function ( $head ) {
-// 	var baseEle = document.createElement( "base" ) ;
-// 	var str = location.href ? location.href : document.URL ;
-// 	var regResStr = str.match( /^file:\/\/\/[A-Za-z]:|(^http:\/\/(127.0.0.1:\d+|localhost:\d+|w+.\w+.\w+)?)?\/\w+/i );
-// 	baseEle.setAttribute( "href" , regResStr[ 0 ] + "/" );
-// 	$head[ 0 ].insertBefore( baseEle , $head.firstElementChild ) ;
-// } ( $head ) ;
 
-void function () {
+
+void function () 
+{
+
+
+
+	
 	if ( !Object.assign ) 
 	{
 		Object.defineProperty(
@@ -104,15 +103,15 @@ void function () {
 						return null ;
 					break;
 				};
-// 				if ( typeof unit == "object" )
-// 				{
-// 					return  unit.constructor.name ;
-// 				}
-// 				else if ( typeof unit != "object" )
-// 				{
-// 					return typeof unit ;
-// 				};
-				type = ( typeof unit == "object" ) ? unit.constructor.name : typeof unit ;
+				if ( typeof unit == "object" )
+				{
+					return  ( "name" in unit.constructor ) ? unit.constructor.name : "Object" ;
+				}
+				else if ( typeof unit != "object" )
+				{
+					return typeof unit ;
+				};
+// 				type = ( typeof unit == "object" ) ? unit.constructor.name : typeof unit ;
 				return type ;
 			},
 		}
@@ -225,34 +224,136 @@ Object.defineProperty(
 		enumerable : false ,
 		configurable : true ,
 		writable : true ,
-		value : function ()
+		value : function ( govern , injection , refe )
 		{
+			if ( arguments.hasNullPointer() ) return ;
 			var $args = Array.prototype.slice.call( arguments ) ;
-			if ( $args == null || $args == undefined ) return ;
-			$arg[ 0 ].insertBefore( $args[ 1 ] , $args[ 2 ].nextSibling ) ;
+// 			if ( $args == null || $args == undefined ) return ;
+			injection = injection ? injection : this ;
+			govern.insertBefore( injection , refe.nextSibling ) ;
+		},
+	}
+);
+
+Object.defineProperty(
+	String.prototype ,
+	"crtTagEles" ,
+	{
+		enumerable : false ,
+		configurable : true ,
+		writable : true ,
+		value : function ( attrObj , tagType ) 
+		{
+			if ( arguments.hasNullPointer() ) return ;
+			var $args = Array.prototype.slice.call( arguments ) ;
+// 			if ( !$args ) return  ;
+			tagType = tagType ? tagType : this ;
+			var ele = document.createElement( tagType ) ;
+			for ( var _key in attrObj )
+			{
+				ele.setAttribute( _key , attrObj[ _key ] ) ;
+			}
+			return ele;
 		},
 	}
 );
 
 Object.defineProperty(
 	Object.prototype ,
-	"crtTagEles" ,
+	"hasNullPointer" ,
 	{
 		enumerable : false ,
-		configurable : true ,
-		writable : true ,
-		value : function () 
+		configurable : false ,
+		writable : false ,
+		value : function ( unitsGroup ) 
 		{
-			var $args = Array.prototype.slice.call( arguments ) ;
-			var ele = document.createElement( $args[ 0 ] ) ;
-			for ( var _key in $args[ 1 ] )
+			unitsGroup = unitsGroup ? unitsGroup : this ;
+			for ( var indicate in unitsGroup ) 
 			{
-				ele.setAttribute( _key , $args[ 1 ][ _key ] ) ;
-			}
-			return ele;
-		},
+				if ( !unitsGroup[ indicate ] ) 
+				{
+					console.log( "unitsGroup[%o]:" , indicate , unitsGroup[ indicate ] ) ;
+					return true ;
+					throw new TypeError( unitsGroup + "[" + indicate +"]" + "nullPint" ) ;
+				} ;
+			} ;
+			return false ;
+		} ,
 	}
 );
+
+Object.defineProperty( 
+	Object.prototype ,
+	"hasSubTagName" ,
+	{
+		enumerable : false ,
+		configurable : false ,
+		writable : false ,
+		value : function ( subTagName , domCollection ) 
+		{
+			domCollection = domCollection ? domCollection : this ;
+			
+			for ( var subDom in domCollection ) 
+			{ 
+				if ( domCollection[ subDom ].tagName == subTagName && domCollection.hasOwnProperty( subDom ) ) 
+				{
+					return true ;
+				} ; 
+			} ;
+			return false ;
+		},
+	}
+) ;
+
+if (  "baseURI" in document == false ) 
+{
+	Object.defineProperty(
+		document ,
+		"baseURI" ,
+		{
+			enumerable : false ,
+			configurable : true ,
+			writable : true ,
+			value : (  document.querySelector( "base" ) 
+						&& "href" in document.querySelector( "base" ) ?
+						document.querySelector( "base" ).href : "" ) ,
+		} 
+	) ;
+} ;
+
+Object.defineProperty(
+	String.prototype ,
+	"getSchema" ,
+	{
+		enumerable : false ,
+		configurable : false ,
+		writable : true ,
+		value : function ( schemaRegStr , virtualPath , urlStr ) 
+		{
+			urlStr = urlStr ? urlStr : this ;
+			virtualPath = ( typeof virtualPath == "number" ) ? 
+						  ( function () 
+						  {
+						  	var str = "\/\w+" ;
+						  	for ( var i = 0 ; i < virtualPath ; i++ ) 
+						  	{
+								str += str ;
+						  	} ;
+							return str ;
+						  } )() : 
+						  (typeof virtualPath == "string" ) ?
+						  virtualPath :
+						  "\/\w+" ;
+			schemaRegStr = schemaRegStr ? schemaRegStr : "^file:\/\/\/[A-Za-z]:|(^http:\/\/(127.0.0.1:\d+|localhost:\d+|w+.\w+.\w+)?)?" ;
+
+			urlStr = location.href ? location.href : document.URL ? document.URL : urlStr ? urlStr : this ;
+			var regExpObj = new RegExp( schemaRegStr += virtualPath  , "ig" ) ;
+			var regResStr = urlStr.match( regExpObj ) ;
+			return regResStr ;
+		} ,
+	}
+) ;
+
 
 
 }();
@@ -365,23 +466,25 @@ var newFn =
 			switch ( surfix )
 			{
 				case ".css" :
-					return Object.crtTagEles(
-						"link" ,
+					return url.crtTagEles(
+						
 						{
 							"href" : url ,
 							"type" : "text/css" ,
 							"rel" : "stylesheet"
-						}
+						} ,
+						"link" 
 					) ;
 				break ;
 
 				case ".js" :
-					return Object.crtTagEles(
-						"script" ,
+					return url.crtTagEles(
+						
 						{
 							"src" : url ,
 							"type" : "text/javascript" ,
-						}
+						} ,
+						"script" 
 					) ;
 				break ;
 			}
@@ -416,10 +519,11 @@ var newFn =
 						break ;
 
 						case "Object" :
-							ele = Object.crtTagEles(
-								"meta",
-								paireUnit
-							)
+							ele = String.prototype.crtTagEles(
+								
+								paireUnit ,
+								"meta" 
+							) ;
 						break ;
 					} ;
 					console.log("ele:" ,ele);
@@ -466,14 +570,42 @@ var newFn =
 
 					console.log( "scArr[this.inc[label]]:" , scArr[ label ][ inc[ label ] ] );
 					var scEle = scArr[ label ][ inc[ label ] ] ;
-					var tagType = scEle.href ? 
+// 					var tagType = scEle.href ? 
+// 								  scEle.href.surfix() : 
+// 								  scEle.src ?
+// 								  scEle.src.surfix() :
+// 								  "css" ;
+
+					var tagType = ( "href" in scEle ) ? 
 								  scEle.href.surfix() : 
-								  scEle.src ?
+								  ( "src" in scEle ) ?
 								  scEle.src.surfix() :
-								  "css" ;
+								  "meta" ;
+
+// 					var tagType = (function () 
+// 					{
+// 						var tagType = "" ;
+// 						if ( scEle.hasOwnProperty("href") ) 
+// 						{
+// 							tagType = scEle.href.surfix() ;
+// 						} 
+// 						else if ( scEle.hasOwnProperty("src") )
+// 						{
+// 							tagType = scEle.src.surfix() ;
+// 						}
+// 						else
+// 						{
+// 							tagType = "css" ;
+// 						};
+// 						return tagType ;
+// 					})();
+
 					switch ( tagType ) 
 					{
 						case ".css" :
+							$head[ 0 ].appendChild( scEle ) ;
+						break ;
+						case "meta" :
 							$head[ 0 ].appendChild( scEle ) ;
 						break ;
 						case ".js" :
@@ -502,7 +634,9 @@ var newFn =
 					};
 				},
 			};
-			var callBackFn = isAsyn.isAsynLoadFn( mainCallBack , isAsyn );
+// 			var callBackFn = isAsyn.isAsynLoadFn( mainCallBack , isAsyn );
+			var callBackFn = isAsyn ? mainCallBack.Asyn : mainCallBack.Syn ;
+
 			callBackFn( scArr , label , inc );
 		};
 
@@ -510,32 +644,37 @@ var newFn =
 		{
 			console.log("arguments:" , arguments );
 			isAsyn = isAsyn && typeof isAsyn == "boolean" ? isAsyn : false ;
-			var mainCallBack = {
+			var mainCallBack = 
+			{
 				Syn : function ( urlObj )
 				{
-					try{
-
+					try
+					{
+				// 		console.log("this:",newFn.scIns.prototype.insObj.crtEleObj);
+				// 		console.log( "this.crtEleObj(urlObj).a:", newFn.scIns.prototype.insObj.crtEleObj( urlObj ).a );
+						var eleObj0 = newFn.scIns.prototype.insObj.crtEleObj( urlObj )
+						newFn.scIns.prototype.appendSc( eleObj0 , "0" , false ) ;
 					}
 					catch ( e )
 					{
 						console.log("e:",e);
 					};
-			// 		console.log("this:",newFn.scIns.prototype.insObj.crtEleObj);
-			// 		console.log( "this.crtEleObj(urlObj).a:", newFn.scIns.prototype.insObj.crtEleObj( urlObj ).a );
-					newFn.scIns.prototype.appendSc( newFn.scIns.prototype.insObj.crtEleObj( urlObj ) , "0" , false ) ;
+
 			// 				this.load_a01();
 					var sv01 = setTimeout (
 						function ()
 						{
 			// 				console.log("newFn.scIns.prototype:",newFn.scIns.prototype);
 			// 				console.log( "this.crtEleObj(urlObj).b:" , newFn.scIns.prototype.insObj.crtEleObj( urlObj ).b );
-							newFn.scIns.prototype.appendSc( newFn.scIns.prototype.insObj.crtEleObj( urlObj ) , "1" , false ) ;
+							var eleObj1 = newFn.scIns.prototype.insObj.crtEleObj( urlObj ) ;
+							newFn.scIns.prototype.appendSc( eleObj1 , "1" , false ) ;
 							setTimeout(
 								function ()
 								{
 			// 							if($args[1]==null || $args[1]==undefined) return;
 			// 						console.log( "newFn.scIns_newFn.scIns.prototype.insObj.crtEleObj(urlObj).c:" , newFn.scIns.prototype.insObj.crtEleObj( urlObj ).c );
-									newFn.scIns.prototype.appendSc( newFn.scIns.prototype.insObj.crtEleObj( urlObj ) , "2" , true ) ;
+									var eleObj2 = newFn.scIns.prototype.insObj.crtEleObj( urlObj ) ;
+									newFn.scIns.prototype.appendSc( eleObj2 , "2" , true ) ;
 								},
 								0
 							);
@@ -550,7 +689,9 @@ var newFn =
 
 				},
 			};
-			var callBackFn = Boolean.prototype.isAsynLoadFn( mainCallBack , isAsyn );
+// 			var callBackFn = Boolean.prototype.isAsynLoadFn( mainCallBack , isAsyn );
+			var callBackFn = isAsyn ? mainCallBack.Asyn : mainCallBack.Syn ;
+
 			callBackFn( urlObj );
 		};
 
@@ -590,7 +731,7 @@ var append_mls =
 
 		}
 		console.log("pathStr:",pathStr);
-	},
+	} ,
 	appendCssJs : function ( urlObj , isAsyn )
 	{
 		var scIns_InsObj = new newFn.scIns();
@@ -598,7 +739,7 @@ var append_mls =
 		var defUrlObj = { 0 : [] , 1 : [] , 2 : [] } ;
 		var resUrlObj = Object.assign( defUrlObj , urlObj ) ; 
 		scIns_InsObj.distribute( resUrlObj , isAsyn );
-	},
+	} ,
 	appendScript : function ( urlObj , isAsyn )
 	{
 		var $body = document.getElementsByTagName( "body" ) ;
@@ -609,7 +750,7 @@ var append_mls =
 		var defUrlObj = { 0 : [] , 1 : [] , 2 : [] } ;
 		var resUrlObj = Object.assign( defUrlObj , urlObj ) ; 
 		scIns_InsObj.distribute( resUrlObj , isAsyn );
-	},
+	} ,
 	appendMeta : function ( urlObj , isAsyn )
 	{
 		var scIns_InsObj = scInsSinIns ;
@@ -617,9 +758,19 @@ var append_mls =
 		var defUrlObj = { 0 : [] , 1 : [] , 2 : [] } ;
 		var resUrlObj = Object.assign( defUrlObj , urlObj ) ; 
 		console.log("scIns_InsObj.crtEleObj( resUrlObj ):",scIns_InsObj.crtEleObj( resUrlObj ));
-		scIns_InsObj.appendSc( scIns_InsObj.crtEleObj( resUrlObj ) , 0 , isAsyn );
-	},
+		var metaEleObj = scIns_InsObj.crtEleObj( resUrlObj ) ;
+		scIns_InsObj.appendSc( metaEleObj , 0 , isAsyn );
+	} ,
+	appendBase : function ( schemaRegStr , virtualPath ) 
+	{
+		if ( document.querySelector( "base" ) ) return ;
+		var regResStr = String.prototype.getSchema( schemaRegStr , virtualPath ) ;
+		
+		var baseEle = document.createElement( "base" ) ;
+		baseEle.setAttribute( "href" , regResStr[ 0 ] + "/" ) ;
+		$head[ 0 ].insertBefore( baseEle , $head.firstElementChild ) ;
 
+	} ,
 };
 // appendcss.parseStr({a:"a",b:"b"});
 
@@ -627,6 +778,7 @@ var append_mls =
 window.$append_mls = append_mls ;
 const scInsSinIns = new newFn.scIns() ;
 window.$scInsSinIns = scInsSinIns ;
+$append_mls.appendBase() ;
 })
 (
 	document.getElementsByTagName( "html" ),
