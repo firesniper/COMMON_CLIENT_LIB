@@ -80,27 +80,29 @@ var uaReg =
 
 var iterateUa = function ( uaReg ) 
 {
-	var uaRegDef = {
-					platform : {
-						"portable" : /iPhone|iPad|Android|Windows Phone/i ,
-						"desktop" : /Windows|Macintosh/i , 
-					} ,
-					explorerRace : {
-						"ie" : /msie([\d.]+)/ ,
-						"firefox" : /firefox\/([\d.]+)/ ,
-						"chrome" : /chrome\/([\d.]+)/ ,
-						"opera" : /opera.([\d.]+)/ ,
-						"safari" : /version\/([\d.]+).*safari/ ,
-					} ,
-					urlState : {
-						offLine : /file\:\/\/\// ,
-						local : /127.0.0.1|localhost/ ,
-						internal : /192.168.1.20/ ,
-						external : /www.spitc-cn.com|spitc-cn.com/ ,
-					} ,
-				} ;
-	uaReg = uaReg ? 
-			Object.assign( uaRegDef , uaReg ) : 
+	var uaRegDef = 
+	{
+		platform : {
+			"portable" : /iPhone|iPad|Android|Windows Phone/i ,
+			"desktop" : /Windows|Macintosh/i , 
+		} ,
+		explorerRace : {
+			"ie" : /msie([\d.]+)/ ,
+			"firefox" : /firefox\/([\d.]+)/ ,
+			"chrome" : /chrome\/([\d.]+)/ ,
+			"opera" : /opera.([\d.]+)/ ,
+			"safari" : /version\/([\d.]+).*safari/ ,
+		} ,
+		urlState : {
+			offLine : /file\:\/\/\// ,
+			local : /127.0.0.1|localhost/ ,
+			internal : /192.168.1.20/ ,
+			external : /www.spitc-cn.com|spitc-cn.com/ ,
+		} ,
+	} ;
+	var verifyRes = uaReg.hasNullPointer() ;
+	uaReg = ( uaReg && verifyRes.unit ) ? 
+			uaReg = Object.assign( uaRegDef , verifyRes.unit ) : 
 			uaRegDef ;
 	var ua = navigator.userAgent.toLowerCase() ; 
 	var lh = "url" in document ? document.url : "href" in location ? location.href : false ; 
