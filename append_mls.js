@@ -8,15 +8,26 @@ if( document.getElementsByTagName( "body" )[ 0 ] )
 // else {
 // 	var $script = $html[0].getElementsByTagName( "script" );
 // };
-// void function ( $head ) {
-// 	var baseEle = document.createElement( "base" ) ;
-// 	var str = location.href ? location.href : document.URL ;
-// 	var regResStr = str.match( /^file:\/\/\/[A-Za-z]:|(^http:\/\/(127.0.0.1:\d+|localhost:\d+|w+.\w+.\w+)?)?\/\w+/i );
-// 	baseEle.setAttribute( "href" , regResStr[ 0 ] + "/" );
-// 	$head[ 0 ].insertBefore( baseEle , $head.firstElementChild ) ;
-// } ( $head ) ;
 
-void function () {
+
+void function () 
+{
+	if (  "baseURI" in document == false ) 
+	{
+		Object.defineProperty(
+			document ,
+			"baseURI" ,
+			{
+				enumerable : false ,
+				configurable : true ,
+				writable : true ,
+				value : "" ,
+			} 
+		) ;
+
+	}
+
+	
 	if ( !Object.assign ) 
 	{
 		Object.defineProperty(
@@ -104,15 +115,15 @@ void function () {
 						return null ;
 					break;
 				};
-// 				if ( typeof unit == "object" )
-// 				{
-// 					return  unit.constructor.name ;
-// 				}
-// 				else if ( typeof unit != "object" )
-// 				{
-// 					return typeof unit ;
-// 				};
-				type = ( typeof unit == "object" ) ? unit.constructor.name : typeof unit ;
+				if ( typeof unit == "object" )
+				{
+					return  ( "name" in unit.constructor ) ? unit.constructor.name : "Object" ;
+				}
+				else if ( typeof unit != "object" )
+				{
+					return typeof unit ;
+				};
+// 				type = ( typeof unit == "object" ) ? unit.constructor.name : typeof unit ;
 				return type ;
 			},
 		}
@@ -225,32 +236,61 @@ Object.defineProperty(
 		enumerable : false ,
 		configurable : true ,
 		writable : true ,
-		value : function ()
+		value : function ( govern , injection , refe )
 		{
+			if ( arguments.hasNullPointer() ) return ;
 			var $args = Array.prototype.slice.call( arguments ) ;
-			if ( $args == null || $args == undefined ) return ;
-			$arg[ 0 ].insertBefore( $args[ 1 ] , $args[ 2 ].nextSibling ) ;
+// 			if ( $args == null || $args == undefined ) return ;
+			injection = injection ? injection : this ;
+			govern.insertBefore( injection , refe.nextSibling ) ;
+		},
+	}
+);
+
+Object.defineProperty(
+	String.prototype ,
+	"crtTagEles" ,
+	{
+		enumerable : false ,
+		configurable : true ,
+		writable : true ,
+		value : function ( tagType , attrObj ) 
+		{
+			if ( arguments.hasNullPointer() ) return ;
+			var $args = Array.prototype.slice.call( arguments ) ;
+// 			if ( !$args ) return  ;
+			tagType = tagType ? tagType : this ;
+			var ele = document.createElement( tagType ) ;
+			for ( var _key in attrObj )
+			{
+				ele.setAttribute( _key , attrObj[ _key ] ) ;
+			}
+			return ele;
 		},
 	}
 );
 
 Object.defineProperty(
 	Object.prototype ,
-	"crtTagEles" ,
+	"hasNullPointer" ,
 	{
 		enumerable : false ,
-		configurable : true ,
-		writable : true ,
-		value : function () 
+		configurable : false ,
+		writable : false ,
+		value : function ( unitsGroup ) 
 		{
-			var $args = Array.prototype.slice.call( arguments ) ;
-			var ele = document.createElement( $args[ 0 ] ) ;
-			for ( var _key in $args[ 1 ] )
+			unitsGroup = unitsGroup ? unitsGroup : this ;
+			for ( var indicate in unitsGroup ) 
 			{
-				ele.setAttribute( _key , $args[ 1 ][ _key ] ) ;
-			}
-			return ele;
-		},
+				if ( !unitsGroup[ indicate ] ) 
+				{
+					console.log( "unitsGroup[%o]:" , indicate , unitsGroup[ indicate ] ) ;
+					return true ;
+					throw new TypeError( unitsGroup + "[" + indicate +"]" + "nullPint" ) ;
+				} ;
+			} ;
+			return false ;
+		} ,
 	}
 );
 
@@ -365,7 +405,7 @@ var newFn =
 			switch ( surfix )
 			{
 				case ".css" :
-					return Object.crtTagEles(
+					return url.crtTagEles(
 						"link" ,
 						{
 							"href" : url ,
@@ -376,7 +416,7 @@ var newFn =
 				break ;
 
 				case ".js" :
-					return Object.crtTagEles(
+					return url.crtTagEles(
 						"script" ,
 						{
 							"src" : url ,
@@ -416,10 +456,10 @@ var newFn =
 						break ;
 
 						case "Object" :
-							ele = Object.crtTagEles(
-								"meta",
+							ele = String.prototype.crtTagEles(
+								"meta" ,
 								paireUnit
-							)
+							) ;
 						break ;
 					} ;
 					console.log("ele:" ,ele);
@@ -466,14 +506,42 @@ var newFn =
 
 					console.log( "scArr[this.inc[label]]:" , scArr[ label ][ inc[ label ] ] );
 					var scEle = scArr[ label ][ inc[ label ] ] ;
-					var tagType = scEle.href ? 
+// 					var tagType = scEle.href ? 
+// 								  scEle.href.surfix() : 
+// 								  scEle.src ?
+// 								  scEle.src.surfix() :
+// 								  "css" ;
+
+					var tagType = ( "href" in scEle ) ? 
 								  scEle.href.surfix() : 
-								  scEle.src ?
+								  ( "src" in scEle ) ?
 								  scEle.src.surfix() :
-								  "css" ;
+								  "meta" ;
+
+// 					var tagType = (function () 
+// 					{
+// 						var tagType = "" ;
+// 						if ( scEle.hasOwnProperty("href") ) 
+// 						{
+// 							tagType = scEle.href.surfix() ;
+// 						} 
+// 						else if ( scEle.hasOwnProperty("src") )
+// 						{
+// 							tagType = scEle.src.surfix() ;
+// 						}
+// 						else
+// 						{
+// 							tagType = "css" ;
+// 						};
+// 						return tagType ;
+// 					})();
+
 					switch ( tagType ) 
 					{
 						case ".css" :
+							$head[ 0 ].appendChild( scEle ) ;
+						break ;
+						case "meta" :
 							$head[ 0 ].appendChild( scEle ) ;
 						break ;
 						case ".js" :
@@ -502,7 +570,9 @@ var newFn =
 					};
 				},
 			};
-			var callBackFn = isAsyn.isAsynLoadFn( mainCallBack , isAsyn );
+// 			var callBackFn = isAsyn.isAsynLoadFn( mainCallBack , isAsyn );
+			var callBackFn = isAsyn ? mainCallBack.Asyn : mainCallBack.Syn ;
+
 			callBackFn( scArr , label , inc );
 		};
 
@@ -522,20 +592,23 @@ var newFn =
 					};
 			// 		console.log("this:",newFn.scIns.prototype.insObj.crtEleObj);
 			// 		console.log( "this.crtEleObj(urlObj).a:", newFn.scIns.prototype.insObj.crtEleObj( urlObj ).a );
-					newFn.scIns.prototype.appendSc( newFn.scIns.prototype.insObj.crtEleObj( urlObj ) , "0" , false ) ;
+					var eleObj0 = newFn.scIns.prototype.insObj.crtEleObj( urlObj )
+					newFn.scIns.prototype.appendSc( eleObj0 , "0" , false ) ;
 			// 				this.load_a01();
 					var sv01 = setTimeout (
 						function ()
 						{
 			// 				console.log("newFn.scIns.prototype:",newFn.scIns.prototype);
 			// 				console.log( "this.crtEleObj(urlObj).b:" , newFn.scIns.prototype.insObj.crtEleObj( urlObj ).b );
-							newFn.scIns.prototype.appendSc( newFn.scIns.prototype.insObj.crtEleObj( urlObj ) , "1" , false ) ;
+							var eleObj1 = newFn.scIns.prototype.insObj.crtEleObj( urlObj ) ;
+							newFn.scIns.prototype.appendSc( eleObj1 , "1" , false ) ;
 							setTimeout(
 								function ()
 								{
 			// 							if($args[1]==null || $args[1]==undefined) return;
 			// 						console.log( "newFn.scIns_newFn.scIns.prototype.insObj.crtEleObj(urlObj).c:" , newFn.scIns.prototype.insObj.crtEleObj( urlObj ).c );
-									newFn.scIns.prototype.appendSc( newFn.scIns.prototype.insObj.crtEleObj( urlObj ) , "2" , true ) ;
+									var eleObj2 = newFn.scIns.prototype.insObj.crtEleObj( urlObj ) ;
+									newFn.scIns.prototype.appendSc( eleObj2 , "2" , true ) ;
 								},
 								0
 							);
@@ -550,7 +623,9 @@ var newFn =
 
 				},
 			};
-			var callBackFn = Boolean.prototype.isAsynLoadFn( mainCallBack , isAsyn );
+// 			var callBackFn = Boolean.prototype.isAsynLoadFn( mainCallBack , isAsyn );
+			var callBackFn = isAsyn ? mainCallBack.Asyn : mainCallBack.Syn ;
+
 			callBackFn( urlObj );
 		};
 
@@ -590,7 +665,7 @@ var append_mls =
 
 		}
 		console.log("pathStr:",pathStr);
-	},
+	} ,
 	appendCssJs : function ( urlObj , isAsyn )
 	{
 		var scIns_InsObj = new newFn.scIns();
@@ -598,7 +673,7 @@ var append_mls =
 		var defUrlObj = { 0 : [] , 1 : [] , 2 : [] } ;
 		var resUrlObj = Object.assign( defUrlObj , urlObj ) ; 
 		scIns_InsObj.distribute( resUrlObj , isAsyn );
-	},
+	} ,
 	appendScript : function ( urlObj , isAsyn )
 	{
 		var $body = document.getElementsByTagName( "body" ) ;
@@ -609,7 +684,7 @@ var append_mls =
 		var defUrlObj = { 0 : [] , 1 : [] , 2 : [] } ;
 		var resUrlObj = Object.assign( defUrlObj , urlObj ) ; 
 		scIns_InsObj.distribute( resUrlObj , isAsyn );
-	},
+	} ,
 	appendMeta : function ( urlObj , isAsyn )
 	{
 		var scIns_InsObj = scInsSinIns ;
@@ -617,9 +692,21 @@ var append_mls =
 		var defUrlObj = { 0 : [] , 1 : [] , 2 : [] } ;
 		var resUrlObj = Object.assign( defUrlObj , urlObj ) ; 
 		console.log("scIns_InsObj.crtEleObj( resUrlObj ):",scIns_InsObj.crtEleObj( resUrlObj ));
-		scIns_InsObj.appendSc( scIns_InsObj.crtEleObj( resUrlObj ) , 0 , isAsyn );
-	},
+		var metaEleObj = scIns_InsObj.crtEleObj( resUrlObj ) ;
+		scIns_InsObj.appendSc( metaEleObj , 0 , isAsyn );
+	} ,
+	appendBase : function ( mainRegStr , virtualPath ) 
+	{
+		virtualPath = virtualPath ? virtualPath : "\/\w+" ;
+		mainRegStr = mainRegStr ? mainRegStr : "^file:\/\/\/[A-Za-z]:|(^http:\/\/(127.0.0.1:\d+|localhost:\d+|w+.\w+.\w+)?)?" ;
+		var baseEle = document.createElement( "base" ) ;
+		var str = location.href ? location.href : document.URL ;
+		var regExpObj = new RegExp( mainRegStr += virtualPath  , "ig" ) ;
+		var regResStr = str.match( regExpObj ) ;
+		baseEle.setAttribute( "href" , regResStr[ 0 ] + "/" ) ;
+		$head[ 0 ].insertBefore( baseEle , $head.firstElementChild ) ;
 
+	} ,
 };
 // appendcss.parseStr({a:"a",b:"b"});
 
