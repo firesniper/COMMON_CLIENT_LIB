@@ -10,7 +10,9 @@ iptRs.on (
         // console.log ( "chunk :" , chunk ) ;
         // chunk = chunk.toString() ;
         // console.log ( typeof chunk ) ;
+        var reserved0 = { "placeHolder1" : "\//" }  ;     
         var reserved = { "placeHolder1" : /\\\/\//ig }  ;
+
         console.log ( reserved[ "placeHolder1" ].test ( chunk ) ) ;
         // console.log ( reserved[ "placeHolder1" ].exec ( chunk ) ) ;
       /*  var matchRes = "" ;
@@ -43,7 +45,7 @@ iptRs.on (
         ] ;
         var regStr2 = 
         [ 
-            /console.log(.*).*\r\n/ig 
+            /console.log\(.*\).*(;|\r\n)/ig 
             ,
             /\/\/.*\r\n/ig
             , 
@@ -59,10 +61,10 @@ iptRs.on (
         } ;
         
         var resChunk2 = regRes ;
-        for ( var p in reserved )
+        for ( var p in reserved0 )
         {
             // var regReserved = new RegExp () ;
-            resChunk2 = resChunk2.replace ( p , reserved[ p ] ) ; 
+            resChunk2 = resChunk2.replace ( new RegExp( p , "ig" ) , reserved0[ p ] ) ; 
         } ;
         console.log ( "resChunk2：" , resChunk2 ) ;
         /*console.log ( "regRes:" , reserved[ "placeHolder1" ].test( regRes ) ) ;
