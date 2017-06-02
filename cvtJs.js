@@ -1,7 +1,44 @@
+Object.defineProperties 
+(
+    String.prototype ,
+    {
+        "formatToRegStr" : {
+            enumerable : false ,
+            configurable : true ,
+            writable : true ,
+            value : function ( a )
+            {
+                var defCharAry = [ "/" , "\\" ] ; 
+                // console.log ( "this:" , this ) ;
+                var thisAry = this.split ( "" ) ;
+                for ( var i = 0 ; i < thisAry.length ; i++ )
+                {
+                    thisAry[ i ] =  "\\" + thisAry[ i ] ;
+                } ;
+                // this = thisAry.join ( "" ) ;
+                return thisAry.join ( "" ) ;
+                /*var reg = new RegExp 
+                ( 
+                    "[" + defCharAry.join( "" ) + "]" , 
+                    "ig" 
+                ) ;
+                var defCharStr = this ;
+                for ( var i = 0 ; i < defCharAry.length ; i++ )
+                {
+                    defCharStr = defCharStr.replace 
+                    ( 
+                        reg , "\\" + defCharAry[ i ] 
+                    ) ;
+                } ;*/
+                
+            }
+        }
+    }
+) ;  
 var fs = require ( "fs" ) ;
-var inputFile = "input.txt" ;
+var inputFile = "./public/node_js/input.txt" ;
 
-var  iptRs = fs.createReadStream ( "input.txt" ) ;
+var  iptRs = fs.createReadStream ( inputFile ) ;
 iptRs.setEncoding ( "utf-8" ) ;
 iptRs.on (
     "data" ,
@@ -10,9 +47,17 @@ iptRs.on (
         // console.log ( "chunk :" , chunk ) ;
         // chunk = chunk.toString() ;
         // console.log ( typeof chunk ) ;
-        var reserved0 = { "placeHolder1" : "\//" }  ;     
-        var reserved = { "placeHolder1" : /\\\/\//ig }  ;
-
+        var reserved0 = { "placeHolder1" : "\\//" } ; 
+        console.log ( "window:" , Object.defineProperties ) ;    
+        console.log ( "Array:" , Array ) ; 
+        // var reserved = { "placeHolder1" : /\\\/\//ig }  ;
+        var reserved = {} ;
+        for ( var pA in reserved0  )
+        {
+            var RegStr = reserved0[ pA ].formatToRegStr () ;
+            reserved[ pA ] =  new RegExp ( RegStr , "ig" ) ;
+        } ;
+        console.log ( "reserved0 Format: " , reserved0[ "placeHolder1" ].formatToRegStr (  ) ) ; 
         console.log ( reserved[ "placeHolder1" ].test ( chunk ) ) ;
         // console.log ( reserved[ "placeHolder1" ].exec ( chunk ) ) ;
       /*  var matchRes = "" ;
