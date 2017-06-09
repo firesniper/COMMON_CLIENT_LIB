@@ -162,12 +162,22 @@ Object.defineProperties
             {
                 let args = Array.prototype.slice.call ( arguments ) ;
                 let $this = this ;
-                let res = true ;
-                for ( let ele in $this ) 
+                let res = false ;
+                /*for ( let ele in $this ) 
                 {
-                    if ( $this[ ele ] == val  ) break  
-                    else res = false ;
-                    
+                    if ( $this[ ele ] == val  ) 
+                    {
+                        res = true ;
+                        break ;
+                    } ;
+                } ;*/
+                for ( let i = 0 ; i < $this.length ; i++ ) 
+                {
+                    if ( $this[ i ] == val  ) 
+                    {
+                        res = true ;
+                        break ;
+                    } ;
                 } ;
                 return res ;
             }
