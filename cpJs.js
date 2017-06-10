@@ -112,6 +112,7 @@ Object.defineProperties
                 let headStr = $this.placeHolder( new RegExp( parentRegPg.a , "ig" ) ) ;
                 console.log ( "headStr:" , headStr ) ;
                 let parentWrap = headStr[ 0 ].match ( new RegExp ( parentRegPg.b , "ig" ) ) ;
+                console.log ( "parentWrap:" ,  parentWrap ) ;
                 let headStr2 = headStr[ 0 ]
                 .replace 
                 (  
@@ -124,11 +125,12 @@ Object.defineProperties
                 // console.log ( "headStr2:" , headStr2 ) ;
                 console.log ( "headStr2:" , headStr2 ) ;
                 // let headStr3 = headStr2.split ( "\n" ) ; 
-                let headStr3 = headStr2.placeHolderToN ().split ( "\n" ) ; 
-
-                // console.log ( "headStr3:" , headStr3 ) ;
+                let headStr3 = headStr2.placeHolderToN () ;
+                let headAry = headStr3.split ( "\n" ) ; 
+                let nonNullAry = headAry.hasNullPointer().content ;
+                console.log ( "nonNullAry:" , nonNullAry ) ;
                 return { 
-                    "content" : headStr3 ,
+                    "content" : nonNullAry ,
                     "parentWrap" : parentWrap
                 } ;
             } 
@@ -142,7 +144,9 @@ Object.defineProperties
                 let args = Array.prototype.slice.call ( arguments ) ;
                 let $this = this ;
                 // console.log ( "this:" , this ) ;
-                return $this.replace ( /(?:\$placeHolderA1){1,}/ig , "\n" )  ;
+                let res = $this.replace ( /(?:\$placeHolderA1){1,}/ig , "\n" ) ;
+                console.log ( "res:" , res ) ;
+                return res ;
                 
             }
         }
@@ -153,6 +157,44 @@ Object.defineProperties
 (
     Array.prototype ,
     {
+        "hasNullPointer" : {
+            enumerable : false ,
+            configurable : true ,
+            writable : true ,
+            value : function ( val ) 
+            {
+                let args = Array.prototype.slice.call ( arguments ) ;
+                let $this = this ;
+                let ary = [] ;
+                let inc = 0 ;
+                let flag = false ;
+                hfA02 : for ( let i = 0 ; i < $this.length ; i++ )
+                {
+                    if 
+                    (
+                        $this[ i ] == null || 
+                        $this[ i ] == undefined || 
+                        $this[ i ] == ""
+                    )
+                    {
+                        flag = true ;
+                        continue hfA02 ;
+                    }
+                    else 
+                    {
+                        
+                        ary[ inc ] = $this[ i ] ;
+                        ++inc ;
+                    } ;
+                    
+                } ;
+                console.log ( "ary:" , ary ) ;
+                return { 
+                    flag : flag ,
+                    content : ary 
+                } ;
+            }
+        } ,
         "hasSamePointerInAry" :
         {
             enumerable : false ,
@@ -199,9 +241,23 @@ Object.defineProperties
                     for ( let ce = 0 ; ce < $this.length ; ce++ )
                     {
 
-                        if ( bAry[ be ].caseQuote () == $this[ ce ].caseQuote () ) continue hfA01 ;
-                        if ( !ary.hasSamePointerInAry ( bAry[ be ] ) )
-                        ary[ inc++ ] = bAry[ be ] ;
+                        if 
+                        ( 
+                            bAry[ be ].caseQuote () == $this[ ce ].caseQuote () 
+                        )
+                        { 
+                            continue hfA01 ; 
+                        }
+                        else if 
+                        ( 
+                            ce == $this.length - 1 && 
+                            !ary.hasSamePointerInAry ( bAry[ be ] ) 
+                        )
+                        { 
+                            
+                            ary[ inc ] = bAry[ be ] ; 
+                            ++inc ;
+                        } ;
                     } ;
                      
                 } ;
