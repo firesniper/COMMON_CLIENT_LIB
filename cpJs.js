@@ -53,7 +53,7 @@ let cpJs =
         (
             glob 
             ( 
-                /*'{' 
+                '{' 
                 + [ 
                     // 'public/node_js/*.{htm,html}' ,
                     
@@ -61,9 +61,9 @@ let cpJs =
                     , ""
                 ].join ( "," ) 
                 + '}' 
-                ,*/
-                "{public/node_js/!(*.dev*).html,}" 
-                , 
+                ,
+                /*"{public/node_js/!(*.dev*).html,}" 
+                , */
                 { 
                     // cwd : './' ,
                     "cwd" : globPg.cwd , 
@@ -181,10 +181,55 @@ let cpJs =
                             "data" ,
                             function ( arg0 , readStreamAry , inc )
                             {
-
+                                let thisComUri = this.path.getDirFileFromUri ().dir  
+                                    + this.path.getDirFileFromUri ().file 
+                                    + ".dev"
+                                    + this.path.getDirFileFromUri ().ext ;
+                                let $this = this ;
+                                let $thisPath = this.path ;
                                 console.log ( "this.path:" , this.path ) ;
                                 let resDataStr = getResDataStr ( arg0 , readStreamAry , inc ) ;
-                                fs.writeFile 
+                                let writerStream = fs.createWriteStream 
+                                ( 
+                                    thisComUri
+                                ) ;
+                                        
+                                writerStream.write 
+                                ( 
+                                    resDataStr.placeHolderToN ()  , 
+                                    "utf8" 
+                                ) ;
+                                // writerStream.end () ;
+                                writerStream.on
+                                (
+                                    "finish" ,
+                                    function ()
+                                    {
+                                        console.log ( "finish" ) ;
+                                    }
+                                ) ;
+
+                                fs.watch 
+                                ( 
+                                    $thisPath , 
+                                    function ( a , b ) 
+                                    {
+                                        /*console.log ( "a:" , a ) ;
+                                        console.log ( "b:" , b ) ;
+                                        console.log ( "this:" , this ) ;
+                                        console.log ( "$this:" , $this ) ;*/
+                                        // $this.pipe ( writerStream ) ;
+                                        // writerStream.end () ;
+                                        /*let chunck = fs.readFileSync ( $thisPath ) ;
+                                        fs.writeFileSync ( thisComUri , chunck ) ;*/
+
+                                        cpJs.init 
+                                        ( putPath , sourceStrB1 , globPg )  ;
+
+                                        
+                                    } 
+                                ) ;
+                                /*fs.writeFile 
                                 ( 
                                     // outputDir
                                     this.path.getDirFileFromUri ().dir  
@@ -198,20 +243,9 @@ let cpJs =
                                     function ( a ) 
                                     {
                                         console.log ( "outputUri:" , outputUri ) ;
-                                        /*let writerStream = fs.createWriteStream ( outputDir + this.path.getFileNameFromUri () ) ;
-                                        
-                                        writerStream.write ( resDataStr.replace ( /(?:\$placeHolderA1){1,}/ig , "\n" ) , "utf8" ) ;
-                                        writerStream.end () ;
-                                        writerStream.on
-                                        (
-                                            "finish" ,
-                                            function ()
-                                            {
-                                                console.log ( "finish" ) ;
-                                            }
-                                        ) ;*/
+                                       
                                     } 
-                                ) ;
+                                ) ;*/
                             }
                             
                         ) ;
