@@ -1,9 +1,10 @@
 let fs = require ( "fs" ) ;
 
-/*let node_common_lib = 
+let node_common_lib = 
 {
-    init : function ()
-    {*/
+    init : function ( baseUrl )
+    {
+        console.log ( "baseUrl:" , baseUrl ) ;
         Object.defineProperties
         (
             String.prototype ,
@@ -66,18 +67,24 @@ let fs = require ( "fs" ) ;
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
                         let $this = this ;
-                        return { 
-                                    wrapAndContent : new RegExp 
-                                    ( 
-                                        "<" + $this + ".*>.*<\\/" + $this + ">" ,
-                                        "ig"
-                                    ) ,
-                                    wrap : new RegExp 
-                                    ( 
-                                        "(?:<" + $this + ">|<\\/" + $this + ">)" , 
-                                        "ig"
-                                    )
-                                }
+                        let res = $this.match( /(?: |all)/ig ) ? 
+                        { 
+                            wrapAndContent : ".*" ,
+                            wrap : ""
+                        }  : 
+                        { 
+                            wrapAndContent : new RegExp 
+                            ( 
+                                "<" + $this + ".*>.*<\\/" + $this + ">" ,
+                                "ig"
+                            ) ,
+                            wrap : new RegExp 
+                            ( 
+                                "(?:<" + $this + ">|<\\/" + $this + ">)" , 
+                                "ig"
+                            )
+                        } ;
+                        return res ;
                     }
                 } 
                 ,
@@ -87,27 +94,23 @@ let fs = require ( "fs" ) ;
                     writable : true ,
                     value : function ( parentNode )
                     {
-                        let parentNodeDef = this.indexOf ( "<head" ) > -1 ? "head" : undefined ;
-                        parentNode = parentNode ? parentNode : parentNodeDef ;
-                        let parentTagRegStrPg = 
-                                parentNode ? 
-                                parentNode.toTagRegStrPg () : 
-                                { 
-                                    wrapAndContent : ".*" ,
-                                    wrap : ""
-                                } ;
-                        
+                        let parentNodeDef = "all" ;
+                        parentNode = parentNode && this.indexOf ( "<" + parentNode ) > -1 ? parentNode : parentNodeDef ;
+                        console.log ( "parentNode:" , parentNode ) ;
+                        let parentTagRegStrPg = parentNode.toTagRegStrPg () ;
+                        console.log ( "parentTagRegStrPg:" , parentTagRegStrPg ) ;
                         let args = Array.prototype.slice.call ( arguments ) ;
                         let $this = this ;
-                        
+                        console.log ( "%this:" ,  this ) ;
                         if (  $this.constructor.name != "String" )
                         { 
                             throw new TypeError ( "isn't String type" ) ; 
                             // return ;
                         } ;
                         // $this = $this.caseQuote () ;
-                        let allDomStr = $this.tokenToPlaceHolder ( ) ;
-
+                        let allDomStr = $this.tokenToPlaceHolder ( parentNode ) ;
+                        console.log ( "allDomStr:" , allDomStr ) ;
+                        console.log ( "parentTagRegStrPg.wrapAndContent:" , parentTagRegStrPg.wrapAndContent ) ;
                         let partDomStr = allDomStr.match 
                         ( 
                               parentTagRegStrPg.wrapAndContent  
@@ -130,42 +133,116 @@ let fs = require ( "fs" ) ;
                         // console.log ( "domContentStr:" , domContentStr ) ;
                         console.log ( "domContentStr:" , domContentStr ) ;
                         // let partDomStr3 = domContentStr.split ( "\n" ) ; 
-                        let domContentStr2 = domContentStr.placeHolderToToken ( "\n" ) ;
+                        let domContentStr2 = domContentStr.placeHolderToToken ( parentNode ) ;
+                        console.log ( "domContentStr2:" , domContentStr2 ) ;
                         let domContentAry = domContentStr2.split ( "\n" ) ; 
                         let nonNullAry = domContentAry.hasNullPointer().content ;
                         console.log ( "nonNullAry:" , nonNullAry ) ;
                         return { 
+                            "partDomStr" : partDomStr[ 0 ] ,
                             "contentAry" : nonNullAry ,
                             "parentWrapAry" : parentWrapAry
                         } ;
                     } 
                 } ,
-                "placeHolderMap" : {
+                "placeHolderTokenMap" : {
                     enumerable : false ,
                     configurable : true ,
                     writable : true ,
                     value : {
-                        "$PH_n_r"  :   [ /(?:\n|\r)/ig , "\n" ] ,
-                        "$PH_t"    :   [ /(?:\t\|\x09|\cI|\v)/ig , "\t" ] ,
-                        "$PH_space":   [ /(?: )/ig , " " ]
+                        "all" : {} ,
+                        "headReg" :
+                            {
+                            "$PH_n_r"  :   [ /(?:\n|\r)/ig , "\n" ] ,
+                            "$PH_t"    :   [ /(?:\t\|\x09|\cI|\v)/ig , "\t" ] ,
+                            "$PH_space":   [ /(?: )/ig , " " ] 
+                        }
+                        ,
+                        "bodyReg" : {
+                            "$PH_url"  :   [ 
+                                /(?:url\(.*\:\d+\/)/ig , 
+                                "url(" + baseUrl + "\/" 
+                                ] 
+                                ,
+                            "$PH_src"  :   [ 
+                                /(?:src.*=.*(?:'|").*\:\d+\/)/ig , 
+                                'src = "' + baseUrl + "\/" 
+                                ]
+                        }
+                        
 
                     } 
+                } ,
+                "placeHolderTokenMapFn" : {
+                    enumerable : false ,
+                    configurable : true ,
+                    writable : true ,
+                    value : function ()
+                    {
+                        let PHTMap = 
+                        {
+                            "all" : {} ,
+                            "headReg" :
+                            {
+                                "$PH_n_r"  :   [ /(?:\n|\r)/ig , "\n" ] ,
+                                "$PH_t"    :   [ /(?:\t\|\x09|\cI|\v)/ig , "\t" ] ,
+                                "$PH_space":   [ /(?: )/ig , " " ] 
+                            }
+                            ,
+                            "bodyReg" : 
+                            {
+                                "$PH_url"  :   
+                                [ 
+                                    /(?:url\(.*\:\d+\/)/ig , 
+                                    "url(" + baseUrl + "\/" 
+                                ] 
+                                ,
+                                "$PH_src"  :   
+                                [ 
+                                    /(?:src.*=.*(?:'|").*\:\d+\/)/ig , 
+                                    'src = "' + baseUrl + "\/" 
+                                ]
+                            }
+                            
+                        } ;
+                        console.log ( "PHTMap:" , PHTMap ) ;
+                        // phtm.all = {} ;
+                        /*for ( let ele in phtm ) 
+                        {
+                            Object.keys ( phtm ) ;
+                        } ;*/
+                        let newPgp = {} ;
+                        for 
+                        ( 
+                            let i = 0 , mapKeys = Object.keys ( PHTMap ) ; 
+                            i < mapKeys.length ; 
+                            i ++ 
+                        )
+                        {
+                            newPgp = Object.assign ( newPgp , PHTMap[ mapKeys[ i ] ] ) ;
+                        } ;
+                        PHTMap.all = newPgp ;
+                        console.log ( "all:" , PHTMap ) ;
+                        return PHTMap ;
+                    }  
                 } ,
                 "tokenToPlaceHolder" : {
                     enumerable : false ,
                     configurable : true ,
                     writable : true ,
-                    value : function ( parentTagRegStrPg , b )
+                    value : function ( parentNode , phTokenMap )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
                         let $this = args[ 1 ] ? args[ 1 ] : this ;
-                        let phMap = String.prototype.placeHolderMap ;
+                        phTokenMap = phTokenMap ? 
+                        phTokenMap : String.prototype.placeHolderTokenMapFn()[ parentNode + "Reg" ] ;
+                        console.log ( "phTokenMap:" , phTokenMap ) ;
                         let resTkToPh = $this ;
-                        for ( let ele in phMap )
+                        for ( let ele in phTokenMap )
                         {
                             resTkToPh = resTkToPh.replace 
                             ( 
-                                phMap[ ele ][ 0 ] , 
+                                phTokenMap[ ele ][ 0 ] , 
                                 ele  
                             ) ;
                         } ;
@@ -182,19 +259,21 @@ let fs = require ( "fs" ) ;
                     enumerable : false ,
                     configurable : true ,
                     writable : true ,
-                    value : function ( token )
+                    value : function ( parentNode , phTokenMap )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
                         let $this = this ;
                         // console.log ( "this:" , this ) ;
-                        let phMap = String.prototype.placeHolderMap ;
+                        phTokenMap = phTokenMap ? 
+                        phTokenMap : String.prototype.placeHolderTokenMapFn()[ parentNode + "Reg" ] ;
                         let phRes = $this ;
-                        for ( let ele in phMap )
+                        console.log ( "phTokenMap:" , phTokenMap ) ;
+                        for ( let ele in phTokenMap )
                         {
                             phRes = phRes.replace 
                             ( 
                                 new RegExp ( "(?:\\" + ele + ")" , "ig" ) , 
-                                phMap[ ele ][ 1 ] 
+                                phTokenMap[ ele ][ 1 ] 
                             ) ;
                         } ;
                         // phRes = $this.replace ( new RegExp ( "(?:\\$PH_n_r\\$){1,}"  ) , "\n" ) ;
@@ -263,6 +342,41 @@ let fs = require ( "fs" ) ;
                             flag : flag ,
                             content : ary 
                         } ;
+                    }
+                } ,
+                "unique" : {
+                    enumerable : false ,
+                    configurable : true ,
+                    writable : true ,
+                    value : function ( val ) 
+                    {
+                        return Array.from 
+                            ( new Set ( this ) ) ;
+                    }
+                } ,
+                "unique2" : {
+                    enumerable : false ,
+                    configurable : true ,
+                    writable : true ,
+                    value : function ( val ) 
+                    {
+                        var json = {} ;
+                        var result = [] ;
+                        this.forEach
+                        (
+                            function ( value )
+                            {
+                                var type = Object.prototype.toString
+                                .call ( value ).match ( /\s(\w+)/ )[ 1 ]
+                                .toLowerCase () ;
+                                if ( !( ( type + '-' + value ) in json ) )
+                                {
+                                    json[ type + '-' + value ] = true ; 
+                                    result.push ( value ) ;
+                                } ;
+                            }
+                        )
+                        return result;
                     }
                 } ,
                 "hasSamePointerInAry" :
@@ -387,7 +501,7 @@ let fs = require ( "fs" ) ;
                         
                     } 
                 } ,
-                "numOf" : {
+                "countOf" : {
                     enumerable : false ,
                     configuratble : true ,
                     writable : true ,
@@ -407,7 +521,7 @@ let fs = require ( "fs" ) ;
                         return tokenCount ;
                     } 
                 } ,
-                "backNumOf" : {
+                "indexOfBackNum" : {
                     enumerable : false ,
                     configuratble : true ,
                     writable : true ,
@@ -418,7 +532,7 @@ let fs = require ( "fs" ) ;
                         let $thisAry = $this.split ( "" ) ;
                         let indexCount = 0 ;
                         let $thisStr1 = $this ;
-                        for ( let i = 0 ; i < $this.numOf ( "." ) ; i ++ ) 
+                        for ( let i = 0 ; i < $this.countOf ( "." ) ; i ++ ) 
                         {
                             ++ indexCount  ;
                             if ( indexCount >= num ) break ;
@@ -443,7 +557,7 @@ let fs = require ( "fs" ) ;
                                 str1 == ".htm" ? 
                                 $this.replace ( new RegExp ( str1 + "$" ) , ".html" )
                                 : null ;*/
-                        let str2 = $this.slice ( $this.backNumOf ( "." , 2 ) ) ;
+                        let str2 = $this.slice ( $this.indexOfBackNum ( "." , 2 ) ) ;
                         let resStr = $this.replace 
                         ( 
                             new RegExp ( str2 + "$" ) , 
@@ -455,9 +569,9 @@ let fs = require ( "fs" ) ;
             }
         ) ; 
 
-/*    }
+    }
      
 } ;
-*/
 
-// module.exports = node_common_lib ;
+
+module.exports = node_common_lib ;
