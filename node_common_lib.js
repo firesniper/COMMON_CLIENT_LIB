@@ -31,7 +31,64 @@ let node_common_lib =
                         } ;
                     }
                 } ,
-                
+                "validSrcFileFromUri" : {
+                    enumerable : false ,
+                    configurable : true ,
+                    writable : true ,
+                    value : function ()
+                    {
+                        let args = Array.prototype.slice.call ( arguments ) ;
+                        let $this = this ;
+                        console.log ( "$this:" ,  $this.toString()   ) ;
+                        let data = fs.readFileSync (  $this.toString() ,"utf-8" ) ;
+                        let ext = $this.getDirFileFromUri () .ext ;
+                        let headFlag = data.indexOf ( "<head" ) > -1 ;
+                        let bodyFlag = data.indexOf ( "<body" ) > -1 ;
+                        let res = 
+                        {
+                            head : headFlag ,
+                            body : bodyFlag ,
+                            ext : ext 
+                        } ;
+                        return res ;
+                    }
+                } ,
+                "validDesDirFileFromUri" : {
+                    enumerable : false ,
+                    configurable : true ,
+                    writable : true ,
+                    value : function ( outputDir )
+                    {
+                        let args = Array.prototype.slice.call ( arguments ) ;
+                        let $this = this.toString () ;
+                        outputDir = outputDir ? outputDir : $this.getDirFileFromUri ().dir ;
+                        if ( outputDir )
+                        {
+                            fs.exists 
+                            (
+                                outputDir
+                                ,
+                                function ( flag )
+                                {
+                                    if ( flag ) return ; 
+                                    fs.mkdirSync ( outputDir ) ;
+
+                                }
+                            ) ;
+                        } ;
+
+                        fs.open 
+                        ( 
+                            $this , 
+                            "w" , 
+                            function ( err , fd )  
+                            {
+                                console.log ( "err:" , err ) ;
+                                console.log ( "fd:" , fd ) ;
+                            }  
+                        ) ;
+                    }
+                } ,
                 "rSpace_aNl" : {
                     enumerable : false ,
                     configurable : true ,
@@ -67,7 +124,7 @@ let node_common_lib =
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
                         let $this = this ;
-                        let res = $this.match( /(?: |all)/ig ) ? 
+                        let res = $this.match( /(?: |all|global|js|css|less|sass|scss|lessSass|common)/ig ) ? 
                         { 
                             wrapAndContent : ".*" ,
                             wrap : ""
@@ -95,8 +152,48 @@ let node_common_lib =
                     value : function ( parentNode )
                     {
                         let parentNodeDef = "all" ;
-                        parentNode = parentNode && this.indexOf ( "<" + parentNode ) > -1 ? parentNode : parentNodeDef ;
-                        console.log ( "parentNode:" , parentNode ) ;
+                        let parentNodeCom = "global" ;
+                        let parentNodeOpt = [ "js" , "less" , "sass", "scss" , "lessSass" ] ;
+                        // parentNode = parentNode ? parentNode : parentNodeDef ;
+                        let optRes = function () 
+                                {
+                                    let res = false ;
+                                    for ( let i = 0 ; i < parentNodeOpt.length ; i ++ ) 
+                                    {
+
+                                        if ( parentNodeOpt[ i ] == parentNode )
+                                        {
+                                            res = parentNodeOpt[ i ] ;
+                                        } 
+               
+                                    } ;
+                                    return res ;
+                                } () ;
+                        parentNode = 
+                        (
+                            parentNode  
+                        ) 
+                        ?
+                        (
+                            (
+                                parentNode != parentNodeDef && 
+                                parentNode != parentNodeCom 
+                            ) 
+                            ?
+                            (
+                                this.indexOf ( "<" + parentNode ) > -1 ? 
+                                parentNode : 
+                                optRes ? 
+                                optRes :
+                                parentNodeCom
+                            )
+                            :
+                            parentNode
+                        ) 
+                        :
+                        parentNodeDef ;
+
+                        console.log ( "parentNode2:" , parentNode ) ;
                         let parentTagRegStrPg = parentNode.toTagRegStrPg () ;
                         console.log ( "parentTagRegStrPg:" , parentTagRegStrPg ) ;
                         let args = Array.prototype.slice.call ( arguments ) ;
@@ -154,7 +251,7 @@ let node_common_lib =
                         "headReg" :
                             {
                             "$PH_n_r"  :   [ /(?:\n|\r)/ig , "\n" ] ,
-                            "$PH_t"    :   [ /(?:\t\|\x09|\cI|\v)/ig , "\t" ] ,
+                            "$PH_t"    :   [ /(?:\t|\x09|\cI|\v)/ig , "\t" ] ,
                             "$PH_space":   [ /(?: )/ig , " " ] 
                         }
                         ,
@@ -181,14 +278,19 @@ let node_common_lib =
                     {
                         let PHTMap = 
                         {
-                            "all" : {} ,
-                            "headReg" :
+                            "allReg" : {} ,
+                            "globalReg" :
                             {
-                                "$PH_n_r"  :   [ /(?:\n|\r)/ig , "\n" ] ,
-                                "$PH_t"    :   [ /(?:\t\|\x09|\cI|\v)/ig , "\t" ] ,
+                                "$PH_n_r"  :   [ /(?:\n)/ig , "\n" ] ,
+                                "$PH_t"    :   [ /(?:\t|\x09|\cI|\v)/ig , "\t" ] ,
                                 "$PH_space":   [ /(?: )/ig , " " ] 
                             }
                             ,
+                            "headReg" : {
+                                // "$PH_n_r"  :   [ /(?:\n|\r)/ig , "\n" ] ,
+                                // "$PH_t"    :   [ /(?:\t|\x09|\cI|\v)/ig , "\t" ] ,
+                                // "$PH_space":   [ /(?: )/ig , " " ] 
+                            } ,
                             "bodyReg" : 
                             {
                                 "$PH_url"  :   
@@ -202,7 +304,50 @@ let node_common_lib =
                                     /(?:src.*=.*(?:'|").*\:\d+\/)/ig , 
                                     'src = "' + baseUrl + "\/" 
                                 ]
-                            }
+                            } ,
+                            "lessSassReg" :
+                            {
+                                "$PH_baseUri" :
+                                [
+                                    /(?:baseUri:.*(?:;|$PH_n_r))/ig , 
+                                    "baseUri:'" + baseUrl + "';" 
+                                ]
+                            } ,
+                            "jsReg" :
+                            {
+                                
+                                 "$PH_reglationA1" :
+                                [
+                                    /\\\/\//ig  , 
+                                    "\\//" 
+                                ] ,
+                                "$PH_fileProtocal" :
+                                [
+                                    /file:\/\/\//ig  , 
+                                    "file:///" 
+                                ] ,
+                                "$PH_httpProtocal" :
+                                [
+                                    /http:\/\//ig  , 
+                                    "http://" 
+                                ] ,
+                                
+                                "$PH_console" :
+                                [
+                                    /console.log.*(?:;|$PH_n_r)/ig  , 
+                                    "" 
+                                ] ,
+                                "$PH_line" :
+                                [
+                                    /\/\/.*(?:\r\n|\t|\x09|\cI|)/ig , 
+                                    "" 
+                                ] ,
+                                "$PH_block" :
+                                [
+                                    /\/\*.*\*\//ig , 
+                                    "" 
+                                ]
+                            } 
                             
                         } ;
                         console.log ( "PHTMap:" , PHTMap ) ;
@@ -211,27 +356,33 @@ let node_common_lib =
                         {
                             Object.keys ( phtm ) ;
                         } ;*/
+                        // PHTMap.bodyReg = Object.assign ( PHTMap.bodyReg , PHTMap.headReg ) ;
                         let newPgp = {} ;
                         for 
                         ( 
-                            let i = 0 , mapKeys = Object.keys ( PHTMap ) ; 
+                            let i = 2 , mapKeys = Object.keys ( PHTMap ) ; 
                             i < mapKeys.length ; 
                             i ++ 
                         )
                         {
-                            newPgp = Object.assign ( newPgp , PHTMap[ mapKeys[ i ] ] ) ;
+                            PHTMap[ mapKeys[ i ] ] = Object.assign ( PHTMap[ mapKeys[ i ] ] , PHTMap.globalReg )
+                            // .unique () ;
+                            newPgp = Object.assign ( newPgp , PHTMap[ mapKeys[ i ] ] )
+                            // .unique () ;
                         } ;
-                        PHTMap.all = newPgp ;
-                        console.log ( "all:" , PHTMap ) ;
+                        console.log ( "newPgp:" , newPgp ) ;
+                        PHTMap.allReg = newPgp ;
+                        console.log ( "PHTMap:" , PHTMap ) ;
                         return PHTMap ;
                     }  
-                } ,
+                }  ,
                 "tokenToPlaceHolder" : {
                     enumerable : false ,
                     configurable : true ,
                     writable : true ,
                     value : function ( parentNode , phTokenMap )
                     {
+                        console.log ( "parentNode:" , parentNode ) ;
                         let args = Array.prototype.slice.call ( arguments ) ;
                         let $this = args[ 1 ] ? args[ 1 ] : this ;
                         phTokenMap = phTokenMap ? 
@@ -521,7 +672,7 @@ let node_common_lib =
                         return tokenCount ;
                     } 
                 } ,
-                "indexOfBackNum" : {
+                "BackNumIndexOf" : {
                     enumerable : false ,
                     configuratble : true ,
                     writable : true ,
@@ -543,7 +694,28 @@ let node_common_lib =
                         return resIndex ;
                     } 
                 } ,
-                "reglation1" : {
+                "getOutputUri" : {
+                    enumerable : false ,
+                    configurable : true ,
+                    writable : true ,
+                    value : function ( outputDir )
+                    {
+                        let args = Array.prototype.slice.call ( arguments ) ;
+                        let $this = this ;
+                        outputDir = outputDir ? outputDir : this.getDirFileFromUri ().dir ;
+         
+                        let outputUri = 
+                        (
+                                outputDir
+                            + this.getDirFileFromUri ().file 
+                            // + ".dev"
+                            + this.getDirFileFromUri ().ext
+                        ).rmSuffix ( "" )  ;
+                        console.log ( "outputUri：" , outputUri ) ;
+                        return outputUri ;
+                    }
+                } ,
+                "rmSuffix" : {
                     enumerable : false ,
                     configuratble : true ,
                     writable : true ,
@@ -557,7 +729,7 @@ let node_common_lib =
                                 str1 == ".htm" ? 
                                 $this.replace ( new RegExp ( str1 + "$" ) , ".html" )
                                 : null ;*/
-                        let str2 = $this.slice ( $this.indexOfBackNum ( "." , 2 ) ) ;
+                        let str2 = $this.slice ( $this.BackNumIndexOf ( "." , 2 ) ) ;
                         let resStr = $this.replace 
                         ( 
                             new RegExp ( str2 + "$" ) , 
