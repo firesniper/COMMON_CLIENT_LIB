@@ -2,9 +2,16 @@ let fs = require ( "fs" ) ;
 
 let node_common_lib = 
 {
+    nonMarkUpExtAry : [ ".js" , ".css" , ".less" , ".sass" , ".scss" , ".txt" ] ,
+    markUpExtAry : [ ".html" , ".htm" , ".xhtml" , ".xml" ] ,
+    extLabelAry : [ "all" , "global" ] ,
+    commonLabelAry : [] ,
+    combineLabelAry : [ "lessSassScss" ] ,
     init : function ( baseUrl )
     {
-        console.log ( "baseUrl:" , baseUrl ) ;
+        let $this = this ;
+        /*console.log ( "baseUrl:" , baseUrl ) ;
+        console.log ( "_this:" , this ) ;*/
         Object.defineProperties
         (
             String.prototype ,
@@ -16,17 +23,17 @@ let node_common_lib =
                     value : function ()
                     {
                         let args = Array.prototype.slice ( arguments ) ;
-                        let $this = this ;
+                        let _this = this ;
                         return {
-                            dir : $this.slice ( 0 , $this.lastIndexOf ( "/" ) ) ,
-                            file : $this.slice 
+                            dir : _this.slice ( 0 , _this.lastIndexOf ( "/" ) ) ,
+                            file : _this.slice 
                             ( 
-                                $this.lastIndexOf ( "/" ) , 
-                                $this.lastIndexOf ( "." ) 
+                                _this.lastIndexOf ( "/" ) , 
+                                _this.lastIndexOf ( "." ) 
                             ) ,
-                            ext : $this.slice
+                            ext : _this.slice
                             (
-                                $this.lastIndexOf ( "." ) 
+                                _this.lastIndexOf ( "." ) 
                             )
                         } ;
                     }
@@ -38,10 +45,10 @@ let node_common_lib =
                     value : function ()
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
-                        console.log ( "$this:" ,  $this.toString()   ) ;
-                        let data = fs.readFileSync (  $this.toString() ,"utf-8" ) ;
-                        let ext = $this.getDirFileFromUri () .ext ;
+                        let _this = this ;
+                        console.log ( "_this:" ,  _this.toString()   ) ;
+                        let data = fs.readFileSync (  _this.toString() ,"utf-8" ) ;
+                        let ext = _this.getDirFileFromUri () .ext ;
                         let headFlag = data.indexOf ( "<head" ) > -1 ;
                         let bodyFlag = data.indexOf ( "<body" ) > -1 ;
                         let res = 
@@ -60,8 +67,8 @@ let node_common_lib =
                     value : function ( outputDir )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this.toString () ;
-                        outputDir = outputDir ? outputDir : $this.getDirFileFromUri ().dir ;
+                        let _this = this.toString () ;
+                        outputDir = outputDir ? outputDir : _this.getDirFileFromUri ().dir ;
                         if ( outputDir )
                         {
                             fs.exists 
@@ -79,7 +86,7 @@ let node_common_lib =
 
                         fs.open 
                         ( 
-                            $this , 
+                            _this , 
                             "w" , 
                             function ( err , fd )  
                             {
@@ -96,8 +103,8 @@ let node_common_lib =
                     value : function ( a )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = args[ 0 ] ? args[ 0 ] : this ;
-                        return $this
+                        let _this = args[ 0 ] ? args[ 0 ] : this ;
+                        return _this
                         // .replace ( />.*</ig , ">\n<" ) 
                         // .replace ( /^.*</ig , "<" )
                         // .replace ( /\/.*>.*$/ig , ">" )
@@ -111,8 +118,8 @@ let node_common_lib =
                     value : function ( a )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = args[ 0 ] ? args[ 0 ] : this ;
-                        return $this.toLowerCase().replace ( /(?:\'|\")/ig , "" ).replace ( / /ig , "" )  ;
+                        let _this = args[ 0 ] ? args[ 0 ] : this ;
+                        return _this.toLowerCase().replace ( /(?:\'|\")/ig , "" ).replace ( / /ig , "" )  ;
                     }
                 }
                 ,
@@ -123,21 +130,35 @@ let node_common_lib =
                     value : function ()
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
-                        let res = $this.match( /(?: |all|global|js|css|less|sass|scss|lessSass|common)/ig ) ? 
+                        let _this = this ;
+                        let res = _this.match
+                        ( 
+                            new RegExp 
+                            ( 
+                                "(?:" 
+                                + $this.nonMarkUpExtAry
+                                .concat ( $this.extLabelAry )
+                                .join( "|" ) 
+                                + ")" 
+                                , 
+                                "ig" 
+                            )
+                        ) 
+                        ? 
                         { 
                             wrapAndContent : ".*" ,
                             wrap : ""
-                        }  : 
+                        }  
+                        : 
                         { 
                             wrapAndContent : new RegExp 
                             ( 
-                                "<" + $this + ".*>.*<\\/" + $this + ">" ,
+                                "<" + _this + ".*>.*<\\/" + _this + ">" ,
                                 "ig"
                             ) ,
                             wrap : new RegExp 
                             ( 
-                                "(?:<" + $this + ">|<\\/" + $this + ">)" , 
+                                "(?:<" + _this + ">|<\\/" + _this + ">)" , 
                                 "ig"
                             )
                         } ;
@@ -145,33 +166,39 @@ let node_common_lib =
                     }
                 } 
                 ,
-                "contentWrap" : {
+                "isEleInAry" : {
+                    enumerable : false ,
+                    configurable : true ,
+                    writable : true ,
+                    value : function ( extAry )
+                    {
+                        let args = Array.prototype.slice.call ( arguments ) ;
+                        let _this = this ;
+                        extAry = extAry ? extAry : $this.nonMarkUpExtAry ;
+                        return extAry.hasEle ( _this ) ;
+                            
+                    }
+                } ,
+                "getContentWrap" : {
                     enumerable : false ,
                     configurable : true ,
                     writable : true ,
                     value : function ( parentNode )
                     {
+                        let args = Array.prototype.slice.call ( arguments ) ;
+                        let _this = this ;
+                        console.log ( "%this:" ,  this ) ;
+                        if (  _this.constructor.name != "String" )
+                        { 
+                            throw new TypeError ( "isn't String type" ) ; 
+                            // return ;
+                        } ;
                         let parentNodeDef = "all" ;
                         let parentNodeCom = "global" ;
-                        let parentNodeOpt = [ "js" , "less" , "sass", "scss" , "lessSass" ] ;
-                        // parentNode = parentNode ? parentNode : parentNodeDef ;
-                        let optRes = function () 
-                                {
-                                    let res = false ;
-                                    for ( let i = 0 ; i < parentNodeOpt.length ; i ++ ) 
-                                    {
-
-                                        if ( parentNodeOpt[ i ] == parentNode )
-                                        {
-                                            res = parentNodeOpt[ i ] ;
-                                        } 
-               
-                                    } ;
-                                    return res ;
-                                } () ;
+                        
                         parentNode = 
                         (
-                            parentNode  
+                            parentNode   
                         ) 
                         ?
                         (
@@ -181,11 +208,15 @@ let node_common_lib =
                             ) 
                             ?
                             (
-                                this.indexOf ( "<" + parentNode ) > -1 ? 
-                                parentNode : 
-                                optRes ? 
-                                optRes :
-                                parentNodeCom
+                                parentNode.isEleInAry ( $this.markUpExtAry ) 
+                                ? 
+                                ( 
+                                    _this.indexOf ( "<" + parentNode ) > -1 ? 
+                                    parentNode : 
+                                    parentNodeCom 
+                                )
+                                :
+                                parentNode 
                             )
                             :
                             parentNode
@@ -196,16 +227,7 @@ let node_common_lib =
                         console.log ( "parentNode2:" , parentNode ) ;
                         let parentTagRegStrPg = parentNode.toTagRegStrPg () ;
                         console.log ( "parentTagRegStrPg:" , parentTagRegStrPg ) ;
-                        let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
-                        console.log ( "%this:" ,  this ) ;
-                        if (  $this.constructor.name != "String" )
-                        { 
-                            throw new TypeError ( "isn't String type" ) ; 
-                            // return ;
-                        } ;
-                        // $this = $this.caseQuote () ;
-                        let allDomStr = $this.tokenToPlaceHolder ( parentNode ) ;
+                        let allDomStr = _this.tokenToPlaceHolder ( parentNode ) ;
                         console.log ( "allDomStr:" , allDomStr ) ;
                         console.log ( "parentTagRegStrPg.wrapAndContent:" , parentTagRegStrPg.wrapAndContent ) ;
                         let partDomStr = allDomStr.match 
@@ -214,7 +236,7 @@ let node_common_lib =
                         ) ;
                         console.log ( "partDomStr:" , partDomStr ) ;
 
-                        let parentWrapAry = partDomStr[ 0 ].match 
+                        let parentWrapAry = partDomStr.hasNullPointer().content[ 0 ].match 
                         (  parentTagRegStrPg.wrap ) ;
                         console.log ( "parentWrapAry:" ,  parentWrapAry ) ;
 
@@ -305,7 +327,7 @@ let node_common_lib =
                                     'src = "' + baseUrl + "\/" 
                                 ]
                             } ,
-                            "lessSassReg" :
+                            ".lessReg" :
                             {
                                 "$PH_baseUri" :
                                 [
@@ -313,7 +335,11 @@ let node_common_lib =
                                     "baseUri:'" + baseUrl + "';" 
                                 ]
                             } ,
-                            "jsReg" :
+                            ".sassReg" :
+                            { } ,
+                            ".scssReg" :
+                            {  } ,
+                            ".jsReg" :
                             {
                                 
                                  "$PH_reglationA1" :
@@ -370,6 +396,7 @@ let node_common_lib =
                             newPgp = Object.assign ( newPgp , PHTMap[ mapKeys[ i ] ] )
                             // .unique () ;
                         } ;
+                        PHTMap[ ".sassReg" ] = PHTMap[ ".cassReg" ] = PHTMap[ ".lessReg" ] ;
                         console.log ( "newPgp:" , newPgp ) ;
                         PHTMap.allReg = newPgp ;
                         console.log ( "PHTMap:" , PHTMap ) ;
@@ -384,11 +411,11 @@ let node_common_lib =
                     {
                         console.log ( "parentNode:" , parentNode ) ;
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = args[ 1 ] ? args[ 1 ] : this ;
+                        let _this = args[ 1 ] ? args[ 1 ] : this ;
                         phTokenMap = phTokenMap ? 
                         phTokenMap : String.prototype.placeHolderTokenMapFn()[ parentNode + "Reg" ] ;
                         console.log ( "phTokenMap:" , phTokenMap ) ;
-                        let resTkToPh = $this ;
+                        let resTkToPh = _this ;
                         for ( let ele in phTokenMap )
                         {
                             resTkToPh = resTkToPh.replace 
@@ -413,11 +440,11 @@ let node_common_lib =
                     value : function ( parentNode , phTokenMap )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
+                        let _this = this ;
                         // console.log ( "this:" , this ) ;
                         phTokenMap = phTokenMap ? 
                         phTokenMap : String.prototype.placeHolderTokenMapFn()[ parentNode + "Reg" ] ;
-                        let phRes = $this ;
+                        let phRes = _this ;
                         console.log ( "phTokenMap:" , phTokenMap ) ;
                         for ( let ele in phTokenMap )
                         {
@@ -427,7 +454,7 @@ let node_common_lib =
                                 phTokenMap[ ele ][ 1 ] 
                             ) ;
                         } ;
-                        // phRes = $this.replace ( new RegExp ( "(?:\\$PH_n_r\\$){1,}"  ) , "\n" ) ;
+                        // phRes = _this.replace ( new RegExp ( "(?:\\$PH_n_r\\$){1,}"  ) , "\n" ) ;
                         console.log ( "phRes:" , phRes ) ;
                         return phRes ;
                         
@@ -440,6 +467,24 @@ let node_common_lib =
         (
             Array.prototype ,
             {
+                "hasEle" : {
+                    enumerable : false ,
+                    configurable : true ,
+                    writable : true ,
+                    value : function ( val )
+                    {
+                        let args = Array.prototype.slice.call ( arguments ) ;
+                        let _this = this ;
+                        let res = false ;
+                        for ( let i = 0 ; i < _this.length ; i ++ ) 
+                        {
+                            if ( _this[ i ] == val )
+                            res = true ;
+                            break ;
+                        } ;
+                        return res ;
+                    }
+                } ,
                 "getReadStreamAry" : {
                     enumerable : false ,
                     configurable : true ,
@@ -447,11 +492,11 @@ let node_common_lib =
                     value : function ( )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
+                        let _this = this ;
                         let readStreamAry = [] ;
-                        for ( let i = 0 ; i < $this.length ; i++ ) 
+                        for ( let i = 0 ; i < _this.length ; i++ ) 
                         {
-                            readStreamAry[ i ] = fs.createReadStream ( $this[ i ] ) ; 
+                            readStreamAry[ i ] = fs.createReadStream ( _this[ i ] ) ; 
                             readStreamAry[ i ].setEncoding ( "utf-8" ) ;
                         } ;
                         return readStreamAry ;
@@ -464,17 +509,17 @@ let node_common_lib =
                     value : function ( val ) 
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
+                        let _this = this ;
                         let ary = [] ;
                         let inc = 0 ;
                         let flag = false ;
-                        hfA02 : for ( let i = 0 ; i < $this.length ; i++ )
+                        hfA02 : for ( let i = 0 ; i < _this.length ; i++ )
                         {
                             if 
                             (
-                                $this[ i ] == null || 
-                                $this[ i ] == undefined || 
-                                $this[ i ] == ""
+                                _this[ i ] == null || 
+                                _this[ i ] == undefined || 
+                                _this[ i ] == ""
                             )
                             {
                                 flag = true ;
@@ -483,7 +528,7 @@ let node_common_lib =
                             else 
                             {
                                 
-                                ary[ inc ] = $this[ i ] ;
+                                ary[ inc ] = _this[ i ] ;
                                 ++inc ;
                             } ;
                             
@@ -538,19 +583,19 @@ let node_common_lib =
                     value : function ( val )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
+                        let _this = this ;
                         let res = false ;
-                        /*for ( let ele in $this ) 
+                        /*for ( let ele in _this ) 
                         {
-                            if ( $this[ ele ] == val  ) 
+                            if ( _this[ ele ] == val  ) 
                             {
                                 res = true ;
                                 break ;
                             } ;
                         } ;*/
-                        for ( let i = 0 ; i < $this.length ; i++ ) 
+                        for ( let i = 0 ; i < _this.length ; i++ ) 
                         {
-                            if ( $this[ i ] == val  ) 
+                            if ( _this[ i ] == val  ) 
                             {
                                 res = true ;
                                 break ;
@@ -566,26 +611,26 @@ let node_common_lib =
                     value : function ( bAry , aAry )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = args[ 1 ] ? args[ 1 ] : this ;
+                        let _this = args[ 1 ] ? args[ 1 ] : this ;
                         let ary = [] ;
                         let inc = 0 ;
                         hfA01 : for ( let be = 0 ; be < bAry.length ; be++ )
                         {
-                            console.log ( "$this[ be ]:" , $this ) ;
+                            console.log ( "_this[ be ]:" , _this ) ;
                             console.log ( "bAry [ be ]:" , bAry  ) ;
-                            for ( let ce = 0 ; ce < $this.length ; ce++ )
+                            for ( let ce = 0 ; ce < _this.length ; ce++ )
                             {
 
                                 if 
                                 ( 
-                                    bAry[ be ].caseQuote () == $this[ ce ].caseQuote () 
+                                    bAry[ be ].caseQuote () == _this[ ce ].caseQuote () 
                                 )
                                 { 
                                     continue hfA01 ; 
                                 }
                                 else if 
                                 ( 
-                                    ce == $this.length - 1 && 
+                                    ce == _this.length - 1 && 
                                     !ary.hasSamePointerInAry ( bAry[ be ] ) 
                                 )
                                 { 
@@ -606,9 +651,9 @@ let node_common_lib =
                     value : function ( index , val )
                     {
                         let arts = Array.prototype.slice.call ( argumets ) ;
-                        let $this = this ;
-                        let ary1 = $this.slice ( 0 , index ) ;
-                        let ary2 = $this.slice ( index ) ;
+                        let _this = this ;
+                        let ary1 = _this.slice ( 0 , index ) ;
+                        let ary2 = _this.slice ( index ) ;
                         let ary3 = ary1.push ( val ) ; 
                         return ary3.concat ( ary2 ) ; 
                     } 
@@ -659,11 +704,11 @@ let node_common_lib =
                     value : function ( token )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
+                        let _this = this ;
                         let tokenCount = 0 ;
-                        for ( let i = 0 ; i < $this.length ; i ++ ) 
+                        for ( let i = 0 ; i < _this.length ; i ++ ) 
                         {
-                            if ( $this[ i ] === token )
+                            if ( _this[ i ] === token )
                             {
                                 tokenCount ++ ;
                             } ;
@@ -672,25 +717,25 @@ let node_common_lib =
                         return tokenCount ;
                     } 
                 } ,
-                "BackNumIndexOf" : {
+                "backNumIndexOf" : {
                     enumerable : false ,
                     configuratble : true ,
                     writable : true ,
                     value : function ( token , num )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
-                        let $thisAry = $this.split ( "" ) ;
+                        let _this = this ;
+                        let _thisAry = _this.split ( "" ) ;
                         let indexCount = 0 ;
-                        let $thisStr1 = $this ;
-                        for ( let i = 0 ; i < $this.countOf ( "." ) ; i ++ ) 
+                        let _thisStr1 = _this ;
+                        for ( let i = 0 ; i < _this.countOf ( "." ) ; i ++ ) 
                         {
                             ++ indexCount  ;
                             if ( indexCount >= num ) break ;
-                            $thisStr1 = $thisStr1.slice ( 0 , $thisStr1.lastIndexOf ( "." ) ) ;
+                            _thisStr1 = _thisStr1.slice ( 0 , _thisStr1.lastIndexOf ( "." ) ) ;
                             
                         } ;
-                        let resIndex = $thisStr1.lastIndexOf ( token ) ;
+                        let resIndex = _thisStr1.lastIndexOf ( token ) ;
                         return resIndex ;
                     } 
                 } ,
@@ -701,7 +746,7 @@ let node_common_lib =
                     value : function ( outputDir )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
+                        let _this = this ;
                         outputDir = outputDir ? outputDir : this.getDirFileFromUri ().dir ;
          
                         let outputUri = 
@@ -722,15 +767,15 @@ let node_common_lib =
                     value : function ( repStr )
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
-                        let $this = this ;
-                        let str1 = $this.slice ( $this.lastIndexOf ( "." ) ) ;
-                        /*$this = str1 == ".html" ? 
-                                $this : 
+                        let _this = this ;
+                        let str1 = _this.slice ( _this.lastIndexOf ( "." ) ) ;
+                        /*_this = str1 == ".html" ? 
+                                _this : 
                                 str1 == ".htm" ? 
-                                $this.replace ( new RegExp ( str1 + "$" ) , ".html" )
+                                _this.replace ( new RegExp ( str1 + "$" ) , ".html" )
                                 : null ;*/
-                        let str2 = $this.slice ( $this.BackNumIndexOf ( "." , 2 ) ) ;
-                        let resStr = $this.replace 
+                        let str2 = _this.slice ( _this.backNumIndexOf ( "." , 2 ) ) ;
+                        let resStr = _this.replace 
                         ( 
                             new RegExp ( str2 + "$" ) , 
                             str1 == ".htm" ? ".html" : str1
