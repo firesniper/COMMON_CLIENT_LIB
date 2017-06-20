@@ -4,13 +4,13 @@ let nodeCommonLib = require ( "../node_common_lib/node_common_lib.js" ) ;
 
 console.log ( "begin" ) ;
 
-let getResLessSassStr = function ( srcDataStr )
+let getResLessSassStr = function ( srcDataStr , fileExt )
 {
     console.log ( "srcDataStr:" ,  srcDataStr ) ;
 
-    let lessSassStr = srcDataStr.contentWrap ( "lessSass" ).partDomStr ;
+    let lessSassStr = srcDataStr.getContentWrap ( fileExt ).partDomStr ;
     console.log ( "lessSassStr:" , lessSassStr ) ;
-    let lessSassStr2 = lessSassStr.placeHolderToToken ( "lessSass" ) ;
+    let lessSassStr2 = lessSassStr.placeHolderToToken ( fileExt ) ;
     console.log ( "lessSassStr2:" , lessSassStr2 ) ;
 
     
@@ -18,57 +18,36 @@ let getResLessSassStr = function ( srcDataStr )
     return lessSassStr2 ;
 } ;
 
-let getResJsStr = function ( chunk )
+let getResNonMakeUpStr = function ( srcDataStr , fileExt )
 {
-    console.log ( "chunk :" , chunk ) ;
-        
-    let regStr = 
-    [ 
-        // "console.log.*(?:;|\\r\\n)" 
-        // ,
-        "\\/\\/.*\\r\\n" 
-        , 
-        "\\/\\*.*\\*\\/"
-    ] ;
-    let regStr2 = 
-    [ 
-        /console.log.*(?:;|\r\n)/ig 
-        ,
-        /\/\/.*\r\n/ig
-        , 
-        /\/\*.*\*\//ig 
-    ] ;
-        
-    let regRes = chunk ;
-    for ( let i = 0 ; i < regStr.length ; i++ )
-    {
+    console.log ( "srcDataStr:" ,  srcDataStr ) ;
 
-            regRes = regRes.replace ( regStr2[ i ] , "" ) ;
-    } ;
-    
-    console.log ( "regRes:" , regRes ) ;
-    return regRes ;
+    let nmuStr = srcDataStr.getContentWrap ( fileExt ).partDomStr ;
+    console.log ( "nmuStr:" , nmuStr ) ;
+    let nmuStr2 = nmuStr.placeHolderToToken ( fileExt ) ;
+    console.log ( "nmuStr2:" , nmuStr2 ) ;
+    return nmuStr2 ;
 } ;
 
-let getResJsStr2 = function ( srcDataStr )
+let getResJsStr2 = function ( srcDataStr , fileExt )
 {
     console.log ( "srcDataStr :" , srcDataStr ) ;
-        
-    let jsStr = srcDataStr.contentWrap ( "js" ).partDomStr ;
+    console.log ( "fileExt2:" , fileExt ) ;    
+    let jsStr = srcDataStr.getContentWrap ( fileExt ).partDomStr ;
     console.log ( "jsStr:" , jsStr ) ;
-    let jsStr2 = jsStr.placeHolderToToken ( "js" ) ;
+    let jsStr2 = jsStr.placeHolderToToken ( fileExt ) ;
     console.log ( "jsStr2:" , jsStr2 ) ;
         
     return jsStr2 ;
 } ;                    
 
-let getResHTMLStr = function ( srcDataStr , injSrcStr )
+let getResHTMLStr = function ( srcDataStr , injSrcStr , fileExt )
 {
     console.log ( "srcDataStr:" ,  srcDataStr ) ;
-    let targetAryA1 = srcDataStr.contentWrap ( "head" ).contentAry ;
+    let targetAryA1 = srcDataStr.getContentWrap ( "head" ).contentAry ;
     console.log ( "targetAryA1:" , targetAryA1 ) ;
     
-    let sourceDataPgp = injSrcStr.contentWrap ( "head" ) ;
+    let sourceDataPgp = injSrcStr.getContentWrap ( "head" ) ;
     console.log ( "sourceDataPgp.contentAry:" , sourceDataPgp.contentAry ) ;
 
     let resDiffAry = targetAryA1.excludeOverlap ( sourceDataPgp.contentAry ) ;
@@ -96,7 +75,7 @@ let getResHTMLStr = function ( srcDataStr , injSrcStr )
         let bodyStr3 = bodyStr[ 0 ].placeHolderToToken () ;
         console.log ( "bodyStr3:" , bodyStr3 ) ;
     } ;*/
-    let bodyStr = srcDataStr.contentWrap ( "body" ).partDomStr ;
+    let bodyStr = srcDataStr.getContentWrap ( "body" ).partDomStr ;
     let bodyStr2 = bodyStr.placeHolderToToken ( "body" ) ;
     let resData3 = resData2.replace ( /<body.*>.*<\/body>/ig , bodyStr2 ) ;
     console.log ( "bodyStr2:" , bodyStr2 ) ;
@@ -117,7 +96,7 @@ let cpJs =
          nodeCommonLib.init ( baseUrl ) ;
         // putPath.inputDir = putPath.inputUri.getDirFileFromUri ().dir ;
         // let inputUri = putPath.inputUri ;
-       
+       console.log ( "nodeCommonLib:" , nodeCommonLib ) ;
 
 
 
@@ -166,25 +145,21 @@ let cpJs =
                                 console.log ( "outputUri：" , outputUri ) ;
 
                                 outputUri.validDesDirFileFromUri ( outputDir ) ;
-
+                                let fileExt = this.path.validSrcFileFromUri ().ext ;
                                 
                                 let resDataStr = 
-                                this.path.validSrcFileFromUri ().ext 
+                                fileExt 
                                 ? 
                                 ( 
-                                    this.path.validSrcFileFromUri ().ext.match ( /(?:.htm|.html)/ig ) 
+                                    fileExt.match ( 
+                                        // /(?:.htm|.html)/ig
+                                        new RegExp ( "(?:" + nodeCommonLib.markUpExtAry.join ( "|" ) + ")" , "ig" ) 
+                                    ) 
                                     ?
-                                    getResHTMLStr ( srcDataStr , injSrcStr ) 
+                                    getResHTMLStr ( srcDataStr , injSrcStr , fileExt ) 
                                     :
-                            
-                                    this.path.validSrcFileFromUri ().ext.match ( /(?:.less|.sass|.scss)/ig ) 
-                                    ?
-                                    getResLessSassStr
-                                    (
-                                        srcDataStr 
-                                    )
-                                    :
-                                    getResJsStr2 ( srcDataStr )
+                                    getResNonMakeUpStr ( srcDataStr , fileExt ) 
+                                    
                                 )
                                 : 
                                 null ;
@@ -196,7 +171,7 @@ let cpJs =
                                 ( 
                                     outputUri
                                 ) ;
-                                console.log ( "writerStream:" , writerStream ) ;        
+                                // console.log ( "writerStream:" , writerStream ) ;        
                                 writerStream.write 
                                 ( 
                                     resDataStr , 
