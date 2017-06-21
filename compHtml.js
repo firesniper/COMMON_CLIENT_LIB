@@ -90,13 +90,15 @@ let getResHTMLStr = function ( srcDataStr , injSrcStr , fileExt )
 
 let cpJs = 
 {
-
+    watchLockA01 : false ,
     init : function ( putPath , injSrcStr , globPgp , baseUrl ) 
     {
-         nodeCommonLib.init ( baseUrl ) ;
+        nodeCommonLib.init ( baseUrl ) ;
+        let $this = this ;
+        console.log ( "$this:" , $this ) ;
         // putPath.inputDir = putPath.inputUri.getDirFileFromUri ().dir ;
         // let inputUri = putPath.inputUri ;
-       console.log ( "nodeCommonLib:" , nodeCommonLib ) ;
+        console.log ( "nodeCommonLib:" , nodeCommonLib ) ;
 
 
 
@@ -135,8 +137,8 @@ let cpJs =
                             "data" ,
                             function ( srcDataStr )
                             {
-                                let $this = this ;
-                                let $thisPath = this.path ;
+                                let _this = this ;
+                                let _thisPath = this.path ;
                                 console.log ( "this.path:" , this.path ) ;
 
                                 let outputDir = putPath.outputDir ? putPath.outputDir : this.path.getDirFileFromUri ().dir ;
@@ -186,44 +188,70 @@ let cpJs =
                                         console.log ( "finish" ) ;
                                     }
                                 ) ;
-                                fs.unwatchFile
+                                let watchLock = false ;
+                                let fsWatchHandle = 
+                                function ( a , b , c ) 
+                                {
+                                    if ( $this.watchLockA01 ) return ;
+                                    $this.watchLockA01 = true ;
+
+                                    console.log ( "_thisPath:" , _thisPath ) ;
+                                    /*fs.unwatchFile
+                                    (
+                                        _thisPath , 
+                                        fsWatchHandle
+                                    ) ;*/
+                                    globPgp = {
+                                        "cwd" : "./" ,
+                                        "regPattAry" : [ _thisPath , "" ]
+                                    } ;
+                                    
+                                    cpJs.init 
+                                    ( putPath , injSrcStr , globPgp , baseUrl )  ;
+                                    let st01 = setTimeout 
+                                    (
+                                        function ()
+                                        {
+                                            $this.watchLockA01 = false ;
+                                        } ,
+                                        3000
+                                    ) ;
+                                    // clearTimeout ( st01 ) ;
+                                    
+
+                                    
+                                } ;
+                                let psWatchA01 = Promise.resolve
                                 (
-                                    $thisPath , 
-                                    function ( a , b , c )
-                                    {
-                                        console.log ( "watcha:" , a ) ;
-                                        console.log ( "watchb:" , b ) ;
-                                        console.log ( "watchc:" , c ) ;
-                                    }
+                                    fs.watch 
+                                    ( 
+                                        _thisPath , 
+                                        fsWatchHandle
+                                    ) 
                                 ) ;
-                                
-                                fs.watch 
-                                ( 
-                                    $thisPath , 
-                                    function ( a , b , c ) 
+                                psWatchA01.then
+                                (
+                                    function ( resolve )
                                     {
-                                        console.log ( "$thisPath:" , $thisPath ) ;
-                                        
-                                        globPgp = {
-                                            "cwd" : "./" ,
-                                            "regPattAry" : [ $thisPath , "" ]
-                                        } ;
-                                        
-                                        cpJs.init 
-                                        ( putPath , injSrcStr , globPgp , baseUrl )  ;
-                                        let st01 = setTimeout 
+                                        let st = setTimeout 
                                         (
                                             function ()
                                             {
-
+                                                watchLock = !watchLock ;
                                             } ,
-                                            0
-                                        ) ;
-                                        clearTimeout ( st01 ) ;
-                                        
+                                            3000
 
-                                        
-                                    } 
+                                        ) ;
+                                        fs.unwatchFile
+                                        (
+                                            _thisPath , 
+                                            fsWatchHandle
+                                        ) ;
+                                    } ,
+                                    function ( reject ) 
+                                    {
+
+                                    }
                                 ) ;
                                 
 
@@ -231,7 +259,9 @@ let cpJs =
                             
                         ) ;
                     } ;
- 
+
+                    
+
                     return fileList ;
                 }    
             ) 
