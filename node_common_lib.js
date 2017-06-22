@@ -7,6 +7,7 @@ let node_common_lib =
     extLabelAry : [ "all" , "global" ] ,
     commonLabelAry : [] ,
     combineLabelAry : [ "lessSassScss" ] ,
+    "fileState" : {} ,
     init : function ( baseUrl )
     {
         let $this = this ;
@@ -16,7 +17,7 @@ let node_common_lib =
         (
             String.prototype ,
             {
-                "getDirFileFromUri" : {
+                "resolveUri" : {
                     enumerable : false ,
                     configurable : true ,
                     writable : true ,
@@ -48,15 +49,20 @@ let node_common_lib =
                         let _this = this ;
                         console.log ( "_this:" ,  _this.toString()   ) ;
                         let data = fs.readFileSync (  _this.toString() ,"utf-8" ) ;
-                        let ext = _this.getDirFileFromUri () .ext ;
+                        let ext = _this.resolveUri () .ext ;
                         let headFlag = data.indexOf ( "<head" ) > -1 ;
                         let bodyFlag = data.indexOf ( "<body" ) > -1 ;
                         let res = 
                         {
+                            uri : _this ,
                             head : headFlag ,
                             body : bodyFlag ,
                             ext : ext 
                         } ;
+                        Object.fileState = $this.fileState = res ;
+                        console.log ( "$this:" , $this ) ;
+                        console.log ( "node_common_lib:" , node_common_lib ) ;
+
                         return res ;
                     }
                 } ,
@@ -68,7 +74,7 @@ let node_common_lib =
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
                         let _this = this.toString () ;
-                        outputDir = outputDir ? outputDir : _this.getDirFileFromUri ().dir ;
+                        outputDir = outputDir ? outputDir : _this.resolveUri ().dir ;
                         if ( outputDir )
                         {
                             fs.exists 
@@ -208,7 +214,7 @@ let node_common_lib =
                             ) 
                             ?
                             (
-                                parentNode.isEleInAry ( $this.markUpExtAry ) 
+                                $this.fileState.ext.isEleInAry ( $this.markUpExtAry ) 
                                 ? 
                                 ( 
                                     _this.indexOf ( "<" + parentNode ) > -1 ? 
@@ -479,8 +485,10 @@ let node_common_lib =
                         for ( let i = 0 ; i < _this.length ; i ++ ) 
                         {
                             if ( _this[ i ] == val )
-                            res = true ;
-                            break ;
+                            {
+                                res = true ;
+                                break ;
+                            } ;
                         } ;
                         return res ;
                     }
@@ -747,14 +755,14 @@ let node_common_lib =
                     {
                         let args = Array.prototype.slice.call ( arguments ) ;
                         let _this = this ;
-                        outputDir = outputDir ? outputDir : this.getDirFileFromUri ().dir ;
+                        outputDir = outputDir ? outputDir : this.resolveUri ().dir ;
          
                         let outputUri = 
                         (
                                 outputDir
-                            + this.getDirFileFromUri ().file 
+                            + this.resolveUri ().file 
                             // + ".dev"
-                            + this.getDirFileFromUri ().ext
+                            + this.resolveUri ().ext
                         ).rmSuffix ( "" )  ;
                         console.log ( "outputUri：" , outputUri ) ;
                         return outputUri ;
